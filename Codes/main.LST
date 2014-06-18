@@ -1,0 +1,96 @@
+C51 COMPILER V8.08   MAIN                                                                  09/09/2010 12:10:25 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /***********************************************************
+   2          This program read values from sensors and displays an 8 element array onto the LCD screen by using "lcd_ar
+             -ray.h"
+   3          ************************************************************/
+   4          
+   5          #include<intrins.h>
+   6          #include"p89v51rx2.h"
+   7          #include"LCD_ARRAY.h"
+   8          
+   9          sbit start_conv = P3^6;          //P3^6 is connected to Start and ALE pin of ADC0808
+  10          sbit output_enable = P3^7;               //P3^7 is connected to Output Enable Pin of ADC0808
+  11          
+  12          unsigned char data_array[8];//initialize an array of 8 elements to display onto the LCD screen
+  13          unsigned char i=0;  //used in main function during ADC conversion 
+  14          
+  15          /********************************************************************************
+  16                  Function: ADC_conversion(unsigned char ADC_channel_number)
+  17          
+  18                  Description: This function performs ADC conversion of a channel number 
+  19                                           that is passed to it. The return value of this function contains 
+  20                                           digital data of the selected channel.
+  21                             
+  22                                           Analog Sensor Pin Mapping
+  23            
+  24                                   IN0-----> IR Proximity sensor 3 (front)
+  25                                           IN1-----> Batt. Voltage
+  26                                           IN2-----> Front Sharp IR Range sensor
+  27                                           IN3-----> IR Proximity sensor 2 (left side)
+  28                                           IN4-----> Left Whiteline
+  29                                           IN5-----> Center Whiteline
+  30                                           IN6-----> Right Whiteline
+  31                                           IN7-----> IR Proximity sensor 4 (right side)
+  32          ********************************************************************************/
+  33          unsigned char ADC_conversion(unsigned char ADC_ch_no)
+  34          {
+  35   1      unsigned char ADC_data;
+  36   1      
+  37   1      P0 = ADC_ch_no; // to select channel no. send address on P0
+  38   1      
+  39   1      start_conv = 1; // ADC0808 will latch the address on L-H transition on the ALE pin
+  40   1      start_conv = 0; // ADC0808 will start conversion on H-L transition on the start pin
+  41   1      delay_ms(2);    // conversion time for ADC0808
+  42   1      
+  43   1      P0 =0xFF;               // output enable and read
+  44   1      output_enable = 1;      //Enabling o/p of ADC0808 for to read the converted data
+  45   1      ADC_data = P0;          //storing adc_data
+  46   1      output_enable = 0;      //disabling ADC 0808 o/p
+  47   1      return ADC_data;        //returning adc_data
+  48   1      }
+  49          
+  50          
+  51          
+  52          void main()
+  53          {
+  54   1       unsigned char i=0;
+C51 COMPILER V8.08   MAIN                                                                  09/09/2010 12:10:25 PAGE 2   
+
+  55   1       output_enable = 0;
+  56   1       start_conv = 0;    //de-assert all control signals to ADC
+  57   1       
+  58   1       LCD_INIT(); //Initialize LCD
+  59   1      
+  60   1       while(1)
+  61   1       {
+  62   2        for(i=0;i<8;i++)
+  63   2        {
+  64   3        data_array[i] = ADC_conversion(i);
+  65   3        }
+  66   2        
+  67   2        LCD_PRINT(data_array);//call this function to print the array onto the screen
+  68   2        delay_ms(500);
+  69   2       }
+  70   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    436    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     20      40
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
